@@ -20,12 +20,14 @@ from multiprocessing                       import Process, Queue
 
 #Suppliers of samples
 from malzoo.core.suppliers.monitor      import Monitor
+from malzoo.core.suppliers.exchange     import Exchange
 from malzoo.core.suppliers.imap         import Imap
 from malzoo.core.suppliers.api          import WebApi
 
 #Sample workers
 from malzoo.core.workers.moduleworker   import ModuleWorker
 from malzoo.core.workers.emailworker    import EmailWorker
+from malzoo.core.workers.exchangeworker import ExchangeWorker
 from malzoo.core.workers.otherworker    import OtherWorker
 from malzoo.core.workers.docworker      import OfficeWorker
 from malzoo.core.workers.zipworker      import ZipWorker
@@ -56,6 +58,7 @@ if __name__ == '__main__':
     zip_queue    = Queue()
     dist_queue   = Queue()
     mail_queue   = Queue()
+    exchange_queue = Queue()
     other_queue  = Queue()
     nr_processes = int(conf.get('settings','nr_workers'))
 
@@ -92,6 +95,14 @@ if __name__ == '__main__':
                 mp.start()
                 suppliers.append(mp)
 
+            if conf.getboolean('suppliers','exchange'):
+                print "[+] Starting Exchange supplier!"
+                exchange = Exchange()
+                mp = Process(target=exchange.run, args=(exchange_queue,))
+                mp.daemon = True
+                mp.start()
+                suppliers.append(mp)
+
             if conf.getboolean('suppliers','dir'):
                 print "[+] Starting Directory monitor!"
                 monitor = Process(Monitor, args=(conf.get('settings','dirmonitor'),dist_queue,))
@@ -117,6 +128,13 @@ if __name__ == '__main__':
             #Email
             for i in range(nr_processes):
                 p = EmailWorker(mail_queue, dist_queue)
+                p.daemon = True
+                p.start()
+                workers.append(p)
+
+            #Exchange
+            for i in range(nr_processes):
+                p = ExchangeWorker(exchange_queue, dist_queue)
                 p.daemon = True
                 p.start()
                 workers.append(p)

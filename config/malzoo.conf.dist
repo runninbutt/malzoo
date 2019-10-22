@@ -21,6 +21,7 @@ duplicatecheck =
 [suppliers]
 api         = yes
 mail        = no
+exchange    = no
 dir         = no
 
 # Email settings
@@ -29,6 +30,13 @@ username    =
 password    = 
 server      = 
 folder      = INBOX/
+
+#Exchange settings
+[exchange]
+username    = 
+password    = 
+server      = 
+folder      = Inbox
 
 # Splunk settings
 [splunk]

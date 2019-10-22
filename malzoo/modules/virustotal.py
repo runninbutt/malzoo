@@ -8,6 +8,7 @@ Simple MalZoo module to search samples to VirusTotal and print the results of sa
 from malzoo.common.abstract import CustomModule
 import requests
 import json
+import os
 
 class VirusTotal(CustomModule):
     # Malzoo required fields
@@ -16,7 +17,7 @@ class VirusTotal(CustomModule):
     enabled = False
 
     # VT required fields
-    api_key  = "your-api-key-here"
+    api_key  = os.environ.get('VT_APIKEY')
     base_url = "https://www.virustotal.com/vtapi/v2/file/report"
 
     def get_result(self,a):

@@ -8,3 +8,4 @@ bottle
 simpleldap
 yara-python
 elasticsearch
+exchangelib

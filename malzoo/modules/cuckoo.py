@@ -3,6 +3,8 @@ Module to submit samples to Cuckoo Sandbox for dynamic analysis. The response is
 task ID but it does not do anything with it. 
 """
 
+import os
+
 from malzoo.common.abstract import CustomModule
 
 class CuckooSandbox(CustomModule):
@@ -11,7 +13,9 @@ class CuckooSandbox(CustomModule):
     enabled = False
 
     def submit(self, data):
-        url   = 'http://<ip_here>:<port_here>/tasks/create/file'
+        # get environment variable CUCKOO_HOSTNAME
+        cuckoohost = os.environ.get('CUCKOO_HOSTNAME')
+        url   = 'http://' + cuckoohost +'/tasks/create/file'
         try:
             files = dict(file=open(data['file'], 'rb'))
             response = requests.post(url, files=files,timeout=5.0)

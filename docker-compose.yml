@@ -1,0 +1,15 @@
+version: 3
+services:
+  malzoo:
+    build: .
+    container_name: malzoo #for easy use
+    image: malzoo-docker:latest #lets tag the builded image
+    restart: unless-stopped
+    environment:
+      - VT_APIKEY = aerk2-234-234-t5-ga
+      - CUCKOO_HOSTNAME = test.local:80
+    volumes:
+      #Add configuration file path before the :
+      - malzoo.conf:/opt/malzoo/conf/malzoo.conf:ro
+    ports:
+      - 1338:1338
