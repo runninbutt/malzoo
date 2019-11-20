@@ -7,9 +7,9 @@ services:
     restart: unless-stopped
     environment:
       - VT_APIKEY = aerk2-234-234-t5-ga
-      - CUCKOO_HOSTNAME = test.local:80
+      - CUCKOO_URL = http://test.local:80
     volumes:
       #Add configuration file path before the :
-      - malzoo.conf:/opt/malzoo/conf/malzoo.conf:ro
-    ports:
-      - 1338:1338
+      - malzoo.conf:/opt/malzoo/config/malzoo.conf:ro
+    #ports:
+    #  - 1338:1338

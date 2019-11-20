@@ -43,35 +43,6 @@ class Exchange(Supplier):
         finally:
             return data
     
-    def get_ids(self, mailbox):
-        """ 
-        Get all messages from the given folder and return the ID numbers 
-        """
-        c = self.c
-        msg_ids = []
-        try:
-            response, data = c.root / mailbox
-            num_msgs = int(data[0])
-            response, msg_ids = c.search(None, '(UNSEEN)')
-        except Exception as e:
-            self.log('{0} - {1} - {2} '.format('imapsupplier','get_ids',e))
-        finally:
-            return msg_ids
-    
-    def fetch_mail(self, mailbox, batch_ids):
-        """ 
-        For each mail ID, fetch the whole email and parse it with msgparser 
-        """
-        try:
-            c = self.c
-            response, data = c.select(mailbox)
-            response, messages = c.fetch(batch_ids,"(RFC822)")
-        except Exception as e:
-            messages = None
-            self.log('{0} - {1} - {2} '.format('imapsupplier','fetch_mail',e))
-        finally:
-            return messages
-    
     def copy_message(self, mailbox, ID, target):
         """ Copy a message to the target folder """
         success = False
@@ -100,7 +71,7 @@ class Exchange(Supplier):
         msg.save()
         return msg
 
-    def run(self, mail_q):
+    def run(self, exchange_q):
         """ Start the process """
         self.conf = ConfigParser.ConfigParser()
         self.conf.read('config/malzoo.conf')
@@ -128,28 +99,16 @@ class Exchange(Supplier):
                     if folder is None:
                         raise ValueError('folder %s not found', folderName)
 
-                    # Fetch all unread items
+                    # 2. Fetch all unread items
                     unread = folder.filter(is_read = False)
-                    # 2. Handle unread emails
-                    for msg in unread:
+                    # 3. Handle unread emails starting from the oldest
+                    for msg in reversed(unread):
                         #Put email messages to the handling queue
                         exchange_q.put(msg)
-            # 2. Get ID's from new messages in mailbox INBOX
-                    email_ids   = self.get_ids(mailbox)     
-                    if email_ids[0] != '': 
-                        batch_ids   = ','.join(email_ids[0].split())
-            # 3. Get the messages from defined mailbox and the list of ID's
-                        emails      = self.fetch_mail(mailbox, batch_ids)
-                        if emails != None:
-                            for i in range(0,len(emails),2):
-                                email = {'filename':emails[i][1],'tag':self.conf.get('settings','tag')}
-                                mail_q.put(email)
-                        else:
-                            self.log('{0} - {1} - {2} '.format('imapsupplier','run','no emails'))
+                        #Set message to read so it won't be processed again
+                        readmsg = self.markAsRead(msg)
     
-            # 4. Check again in 10 seconds
-                    self.c.close()
-                    self.c.logout()
+            # 4. Check again in 60 seconds
                     time.sleep(60) 
     
                 except KeyboardInterrupt:

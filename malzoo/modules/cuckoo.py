@@ -13,9 +13,9 @@ class CuckooSandbox(CustomModule):
     enabled = False
 
     def submit(self, data):
-        # get environment variable CUCKOO_HOSTNAME
-        cuckoohost = os.environ.get('CUCKOO_HOSTNAME')
-        url   = 'http://' + cuckoohost +'/tasks/create/file'
+        # get environment variable CUCKOO_URL
+        cuckoohost = os.environ.get('CUCKOO_URL')
+        url   = cuckoohost +'/tasks/create/file'
         try:
             files = dict(file=open(data['file'], 'rb'))
             response = requests.post(url, files=files,timeout=5.0)
